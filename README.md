@@ -47,6 +47,9 @@ optional arguments:
   -m MTU, --mtu MTU     mtu size, between 1028 and 65336 bytes
 ```
 
+###Logs 
+Logs are written to /var/log/network_config.log file.
+
 ###Example 1 (parameters are specified in command line)
 ```
 $ sudo python3 ~/dev/network_config.py  -i enp0s9  -a 2001:2002::11 -n 2001:2002::/64 -g 2001:2002::1 -m 9000
