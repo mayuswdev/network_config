@@ -21,7 +21,7 @@ interface and route are configured.
                              - address must be in the given network
       - network - network address is checked for IPv6
       - gateway - gateway address is checked for IPv6.
-     - mtu 
+      - mtu     - mtu size must be between 1028 and 65336 bytes
 
 
 ##Help
@@ -47,7 +47,7 @@ optional arguments:
   -m MTU, --mtu MTU     mtu size, between 1028 and 65336 bytes
 ```
 
-###Example 1
+###Example 1 (parameters are specified in command line)
 ```
 $ sudo python3 ~/dev/network_config.py  -i enp0s9  -a 2001:2002::11 -n 2001:2002::/64 -g 2001:2002::1 -m 9000
 
@@ -62,9 +62,9 @@ Route successfully added network: 2001:2002::/64, gateway: 2001:2002::1
 
 ```
 
-###Example 2
+###Example 2 
 ```
-mayuran@mayuran-VirtualBox:~/dev$ sudo python3 network_config.py 
+$ sudo python3 network_config.py
 Enter network interface name: enp0s8
 Enter IPv6 address          : 2001:2002::101
 Enter IPv6 network (address/prefixlen): 2001:2002::/64
