@@ -50,9 +50,9 @@ optional arguments:
 ###Logs 
 Logs are written to /var/log/network_config.log file.
 
-###Example 1 (parameters are specified in command line)
+###Example 1 - parameters are specified in command line
 ```
-$ sudo python3 ~/dev/network_config.py  -i enp0s9  -a 2001:2002::11 -n 2001:2002::/64 -g 2001:2002::1 -m 9000
+$ sudo python3 network_config.py  -i enp0s9  -a 2001:2002::11 -n 2001:2002::/64 -g 2001:2002::1 -m 9000
 
 The following network parameters will be configured on interface: enp0s9
 IP Address  : 2001:2002::11
@@ -82,4 +82,15 @@ MTU         : 9000
 Please confirm to continue: (Y/N):Y
 Network parameters successfully configured for interface: enp0s8
 Route successfully added network: 2001:2002::/64, gateway: 2001:2002::1
+```
+
+###Example 3 - network and ip address validation (error case)
+```
+$ sudo python3 network_config.py  
+Enter network interface name: enp0s8
+Enter IPv6 address          : 2001:2002::101
+Enter IPv6 network (address/prefixlen): 2001:2003::/64
+Enter IPv6 gateway address  : 2001:2002::1
+Enter MTU size              : 9000
+IPv6 Address: 2001:2002::1 is not in Network: 2001:2003::/64
 ```
