@@ -68,31 +68,31 @@ def exit_now(code):
     
 def print_info(message):
    if logger:
-       logger.info(message)
+       logger.info("{0:s}".format(message))
    else:
-       print(message)
+       print("{0:s}".format(message))
 
 
 def print_warn(message):
    if logger:
-      logger.warn("%s%s%s"%(C_YELLOW,message,C_NO_COLOR))
+      logger.warn("{0:s}{1:s}{2:s}".format(C_YELLOW,message,C_NO_COLOR))
    else:
-      print("%sWARNING: %s%s"%(C_YELLOW,message,C_NO_COLOR))
+      print("{0:s}WARNING: {1:s}{2:s}".format(C_YELLOW,message,C_NO_COLOR))
 
 
 def print_debug(message):
    if args.verbose:
       if logger:
-         logger.debug(message)
+         logger.debug("{0:s}".format(message))
       else:
-         print("DEBUG: " + message)
+         print("DEBUG: {0:s}".format(message))
 
 
 def print_error(message, kill = True):
    if logger:
-      logger.error("%s%s%s"%(C_RED,message,C_NO_COLOR))
+      logger.error("{0:s}{1:s}{2:s}".format(C_RED, message, C_NO_COLOR))
    else:
-      print("%sERROR: %s%s"%(C_RED,message,C_NO_COLOR))
+      print("{0:s}ERROR: {1:s}{2:s}".format(C_RED, message, C_NO_COLOR))
 
    if kill: 
       exit_now(1)
@@ -109,7 +109,7 @@ def run_os_command(command):
       proc.kill()
       outs, errs = proc.communicate()
 
-   return outs.decode('utf-8'), errs.decode('utf-8') 
+   return outs.decode('utf-8').strip(), errs.decode('utf-8').strip()
 
 
 def is_valid_ifname(ifname):
@@ -132,7 +132,7 @@ def is_valid_address(address):
       else:
          print_warn("Not an IPv6 address...")
    except ValueError as error:
-      print_warn(error)
+      print_warn(str(error))
 
    return False
 
@@ -151,7 +151,7 @@ def is_valid_network(network):
       else:
          print_warn("Not an IPv6 Network address...")
    except ValueError as error:
-      print_warn(error)
+      print_warn(str(error))
 
    return False
 
@@ -173,28 +173,28 @@ def is_valid_mtu(mtu):
 
 
 def config_network(cfg):
-   ifconfig_command  = 'ifconfig ' + cfg['ifname'] + ' inet6 add ' + cfg['address'] + '/'
-   ifconfig_command += cfg['prefixlen'] + ' mtu ' + cfg['mtu'] 
+   ifconfig_command  = ("ifconfig {0:s} inet6 add {1:s}/{2:s} mtu {3:s}"
+                       .format(cfg['ifname'], cfg['address'], cfg['prefixlen'], cfg['mtu']))
 
    out,err = run_os_command(ifconfig_command)
    if err:
-      print_error("Failed to configure network interface (%s), error: %s"%
-                  (cfg['ifname'], err))
+      print_error("Failed to configure network interface: {0:s}, error: '{1:s}'"
+                  .format(cfg['ifname'], err))
    else:
-      print_info("%sNetwork parameters successfully configured for interface: %s%s"%
-                 (C_GREEN, cfg['ifname'], C_NO_COLOR)) 
+      print_info("{0:s}Network parameters successfully configured for interface: {1:s}{2:s}"
+                 .format(C_GREEN, cfg['ifname'], C_NO_COLOR)) 
  
-   route_command = 'route -A inet6 add ' + cfg['network'] + ' gw ' + cfg['gateway']
+   route_command = ("route -A inet6 add {0:s} gw {1:s}".format(cfg['network'], cfg['gateway']))
    out, err = run_os_command(route_command)   
    if err:
-      print_error("Failed to add route for network: %s, gw: %s, error: %s"%
-                  (cfg['network'], cfg['gateway'], err))
+      print_error("Failed to add route for network: {0:s}, gw: {1:s}, error: '{2:s}'"
+                  .format(cfg['network'], cfg['gateway'], err))
    else:
-      print_info("%sRoute successfully added network: %s, gateway: %s%s"%
-                 (C_GREEN, cfg['network'], cfg['gateway'], C_NO_COLOR))
+      print_info("{0:s}Route successfully added network: {1:s}, gateway: {2:s}{3:s}"
+                  .format(C_GREEN, cfg['network'], cfg['gateway'], C_NO_COLOR))
 
 
-def read_input(message, parameter,  validate_function=None):
+def read_input(message, parameter, validate_function=None):
    value = input(message).strip()
    if validate_function:
       while True:
@@ -205,7 +205,7 @@ def read_input(message, parameter,  validate_function=None):
          if validate_function(value):
             return value
          else:
-            print_info("Invalid value entered for '%s', try again..."%parameter)
+            print_info("Invalid value entered for {0:s}, try again...".format(parameter))
             value = input(message).strip()
    return value
 
@@ -214,7 +214,7 @@ def read_input_parameters(args, cfg):
    if args.ifname:
       cfg['ifname'] = args.ifname.strip()
    else:
-      cfg['ifname'] = read_input("Enter network interface name: ", 'interface', is_valid_ifname)
+      cfg['ifname'] = read_input("Enter network interface name: ", 'interface name', is_valid_ifname)
  
    if args.address:
       cfg['address'] = args.address
@@ -224,7 +224,7 @@ def read_input_parameters(args, cfg):
    if args.network:
       cfg['network'] = args.network
    if not is_valid_network(cfg['network']):
-      cfg['network'] = read_input("Enter IPv6 network (address/prefixlen): ", 'network', is_valid_network)
+      cfg['network'] = read_input("Enter IPv6 network (address/prefixlen): ", 'network address', is_valid_network)
 
    if args.gateway:
       cfg['gateway'] = args.gateway
@@ -237,10 +237,11 @@ def read_input_parameters(args, cfg):
       cfg['mtu'] = read_input("Enter MTU size              : ", 'mtu', is_valid_mtu)
 
    if not cfg['ipv6address'] in cfg['ipv6network']:
-      print_error("IPv6 Address: %s is not in Network: %s"%
-                  (str(cfg['ipv6address']), str(cfg['ipv6network'])))
+      print_error("IPv6 Address: {0:s} is not in Network: {1:s}"
+                  .format(str(cfg['ipv6address']), str(cfg['ipv6network'])))
 
-   print_info("\nThe following network parameters will be configured on interface: " + C_GREEN + cfg['ifname'] +
+   print_info("\nThe following network parameters will be configured on interface: " +
+              C_GREEN + cfg['ifname'] +
               "\nIP Address  : " + cfg['address'] + 
               "\nNetwork     : " + cfg['network'] + "    Prefixlen: " + cfg['prefixlen'] +
               "\nGateway IP  : " + cfg['gateway'] +
@@ -248,7 +249,7 @@ def read_input_parameters(args, cfg):
                C_NO_COLOR)
 
    if not args.silent:
-      yn = input("%s%sPlease confirm to continue: (Y/N):%s"%(C_BOLD, C_GREEN, C_NO_COLOR))
+      yn = input("{0:s}{1:s}Please confirm to continue: (Y/N):{2:s}".format(C_BOLD, C_GREEN, C_NO_COLOR))
       yn.strip()
       if 'N' in yn.upper() or 'Q' in yn.upper():
          print_warn("Exiting....")
